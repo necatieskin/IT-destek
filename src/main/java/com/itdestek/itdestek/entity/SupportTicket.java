@@ -14,15 +14,15 @@ public class SupportTicket {
 
     private String title;
     private String description;
-    private String location;    // Arıza yeri
-    private String priority;    // Öncelik durumu
-    private boolean resolved;   // Çözüldü mü? (Hocanın 'completed' alanı gibi)
+    private String location;
+    private String priority;
+    private boolean resolved;
 
-    // 1. Boş Constructor (Hibernate veritabanından veri çekerken bu boş kalıba ihtiyaç duyar)
+
     public SupportTicket() {
     }
 
-    // 2. Dolu Constructor (Kod içinde yeni bir nesne oluştururken tüm bilgileri doldurmanı sağlar)
+
     public SupportTicket(Long id, String title, String description, String location, String priority, boolean resolved) {
         this.id = id;
         this.title = title;
@@ -32,7 +32,7 @@ public class SupportTicket {
         this.resolved = resolved;
     }
 
-    // 3. Getter ve Setter Metotları (Private değişkenlere güvenli erişim sağlar)
+
 
     public Long getId() {
         return id;
