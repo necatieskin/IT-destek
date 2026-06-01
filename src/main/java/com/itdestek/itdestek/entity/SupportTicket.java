@@ -18,10 +18,8 @@ public class SupportTicket {
     private String priority;
     private boolean resolved;
 
-
     public SupportTicket() {
     }
-
 
     public SupportTicket(Long id, String title, String description, String location, String priority, boolean resolved) {
         this.id = id;
@@ -31,8 +29,6 @@ public class SupportTicket {
         this.priority = priority;
         this.resolved = resolved;
     }
-
-
 
     public Long getId() {
         return id;
