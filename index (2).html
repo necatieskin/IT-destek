@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Destek - Arıza Takip Paneli</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-950 min-h-screen text-slate-100 flex flex-col justify-between">
+
+    <div id="role-selection-screen" class="fixed inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center p-4">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-indigo-400 tracking-tight">IT Destek Sistemi</h1>
+            <p class="text-slate-400 mt-2 text-sm">Lütfen sisteme devam etmek için rolünüzü seçiniz</p>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl w-full">
+            <button onclick="selectRole('personel')" class="bg-slate-900 border-2 border-slate-800 hover:border-indigo-500 p-8 rounded-2xl text-center transition-all group flex flex-col items-center justify-center cursor-pointer">
+                <div class="w-16 h-16 bg-indigo-950 rounded-full flex items-center justify-center mb-4 text-indigo-400 group-hover:scale-110 transition-transform">
+                    👥
+                </div>
+                <h3 class="text-xl font-bold text-slate-200">Personel Girişi</h3>
+                <p class="text-slate-400 text-xs mt-2">Sadece yeni arıza kaydı oluşturabilir ve mevcut durumları inceleyebilir.</p>
+            </button>
+
+            <button onclick="selectRole('it_uzmani')" class="bg-slate-900 border-2 border-slate-800 hover:border-amber-500 p-8 rounded-2xl text-center transition-all group flex flex-col items-center justify-center cursor-pointer">
+                <div class="w-16 h-16 bg-amber-950 rounded-full flex items-center justify-center mb-4 text-amber-400 group-hover:scale-110 transition-transform">
+                    🛠️
+                </div>
+                <h3 class="text-xl font-bold text-slate-200">IT Uzmanı Girişi</h3>
+                <p class="text-slate-400 text-xs mt-2">Tüm arızaları yönetebilir, silebilir, düzenleyebilir ve raporları görebilir.</p>
+            </button>
+        </div>
+    </div>
+
+    <div id="main-panel" class="container mx-auto px-4 py-8 max-w-6xl hidden">
+        <header class="mb-10 flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-800 pb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-indigo-400 tracking-tight">IT Destek Yönetim Paneli</h1>
+                <p class="text-slate-400 text-sm mt-1">Arıza Kayıtları Takip ve Yönetim Sistemi</p>
+            </div>
+            <div class="flex items-center gap-3 bg-slate-900 px-4 py-2 rounded-xl border border-slate-800">
+                <span class="text-xs text-slate-400 font-medium">Aktif Mod:</span>
+                <span id="active-role-badge" class="text-xs font-bold px-2.5 py-1 rounded-sm"></span>
+                <button onclick="logoutRole()" class="text-xs text-red-400 hover:text-red-300 font-medium ml-2 cursor-pointer">Değiştir</button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="bg-slate-900 p-6 rounded-2xl shadow-xl border border-slate-800 h-fit">
+                <h2 id="form-title" class="text-xl font-semibold text-slate-100 mb-6 flex items-center gap-2">
+                    <span class="w-2 h-6 bg-indigo-500 rounded-sm"></span> Yeni Arıza Kaydı Oluştur
+                </h2>
+                
+                <form id="issue-form" class="space-y-4">
+                    <input type="hidden" id="issue-id">
+                    
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Arıza Başlığı</label>
+                        <input type="text" id="title" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Birim / Konum</label>
+                        <input type="text" id="location" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="Örn: Muhasebe, Kat 2">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Öncelik Durumu</label>
+                        <select id="priority" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-sm">
+                            <option value="Düşük">Düşük</option>
+                            <option value="Orta" selected>Orta</option>
+                            <option value="Yüksek">Yüksek</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Açıklama</label>
+                        <textarea id="description" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-sm"></textarea>
+                    </div>
+
+                    <div id="resolved-group" class="hidden flex items-center gap-2 py-2">
+                        <input type="checkbox" id="resolved" class="w-4 h-4 text-indigo-600 bg-slate-950 border-slate-800 rounded-sm focus:ring-indigo-500">
+                        <label for="resolved" class="text-sm font-medium text-slate-300">Sorun Çözüldü Olarak İşaretle</label>
+                    </div>
+
+                    <div class="flex gap-2 pt-2">
+                        <button type="submit" id="btn-submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm shadow-md cursor-pointer">
+                            Kaydet
+                        </button>
+                        <button type="button" id="btn-cancel" onclick="resetForm()" class="hidden bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium py-2 px-4 rounded-lg transition-colors text-sm cursor-pointer">
+                            İptal
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-slate-900 p-4 rounded-xl shadow-md border border-slate-800 flex flex-wrap gap-2 items-center justify-between">
+                    <div class="flex gap-2">
+                        <button onclick="loadAllIssues()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold py-2 px-4 rounded-lg transition-colors cursor-pointer">
+                            Tüm Arızalar
+                        </button>
+                        <button id="btn-top5" onclick="loadLatestFive()" class="hidden bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold py-2 px-4 rounded-lg transition-colors cursor-pointer">
+                            Son 5 Arıza (Top 5)
+                        </button>
+                    </div>
+                    <div id="list-info" class="text-xs text-slate-400 font-medium">Tüm kayıtlar listeleniyor</div>
+                </div>
+
+                <div id="issues-container" class="space-y-4">
+                    <div class="text-center py-12 text-slate-500 bg-slate-900 rounded-2xl border border-dashed border-slate-800">
+                        Yükleniyor veya henüz hiç kayıt eklenmemiş...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:8080/issues";
+        const AUTH_HEADER = "Basic " + btoa("admin:admin123");
+        
+        let currentIssuesList = [];
+        let currentRole = ""; // 'personel' veya 'it_uzmani'
+
+        // 1. ROL SEÇİMİ FONKSİYONU
+        function selectRole(role) {
+            currentRole = role;
+            
+            // Ekran geçişleri
+            document.getElementById("role-selection-screen").classList.add("hidden");
+            document.getElementById("main-panel").classList.remove("hidden");
+            
+            // Seçilen role göre arayüzü şekillendir
+            const badge = document.getElementById("active-role-badge");
+            const top5Btn = document.getElementById("btn-top5");
+            
+            if (role === 'personel') {
+                badge.innerText = "PERSONEL";
+                badge.className = "text-xs font-bold px-2.5 py-1 rounded-md bg-indigo-950 text-indigo-400 border border-indigo-900";
+                top5Btn.classList.add("hidden");
+            } else {
+                badge.innerText = "IT UZMANI";
+                badge.className = "text-xs font-bold px-2.5 py-1 rounded-md bg-amber-950 text-amber-400 border border-amber-900";
+                top5Btn.classList.remove("hidden");
+            }
+            
+            resetForm();
+            loadAllIssues();
+        }
+
+        // 2. ROL DEĞİŞTİRME / ÇIKIŞ
+        function logoutRole() {
+            document.getElementById("main-panel").classList.add("hidden");
+            document.getElementById("role-selection-screen").classList.remove("hidden");
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("issue-form").addEventListener("submit", function(e) {
+                e.preventDefault();
+                saveIssue();
+            });
+        });
+
+        // TÜM ARIZALARI GETİR (GET)
+        async function loadAllIssues() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'GET',
+                    headers: { 'Authorization': AUTH_HEADER }
+                });
+                if (!response.ok) throw new Error("Veriler çekilemedi.");
+                currentIssuesList = await response.json();
+                renderIssues(currentIssuesList);
+                document.getElementById("list-info").innerText = "Tüm kayıtlar listeleniyor";
+            } catch (error) {
+                alert("Hata: Backend uygulamasının çalıştığından emin olun!");
+                console.error(error);
+            }
+        }
+
+        // SON 5 ARIZAYI GETİR (GET /latest)
+        async function loadLatestFive() {
+            try {
+                const response = await fetch(`${API_URL}/latest`, {
+                    method: 'GET',
+                    headers: { 'Authorization': AUTH_HEADER }
+                });
+                if (!response.ok) throw new Error("Son 5 kayıt çekilemedi.");
+                currentIssuesList = await response.json();
+                renderIssues(currentIssuesList);
+                document.getElementById("list-info").innerText = "Sisteme eklenen son 5 arıza (Top 5)";
+            } catch (error) {
+                alert("Top 5 verisi yüklenirken hata oluştu.");
+                console.error(error);
+            }
+        }
+
+        // VERİYİ KARTLARA DÖNÜŞTÜRME
+        function renderIssues(issues) {
+            const container = document.getElementById("issues-container");
+            container.innerHTML = "";
+
+            if (issues.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-slate-500 bg-slate-900 rounded-2xl border border-slate-800">
+                        Gösterilecek arıza kaydı bulunamadı.
+                    </div>`;
+                return;
+            }
+
+            issues.forEach(issue => {
+                const priorityColor = issue.priority === 'Yüksek' ? 'bg-red-950 text-red-400 border-red-900' : 
+                                      issue.priority === 'Orta' ? 'bg-amber-950 text-amber-400 border-amber-900' : 
+                                      'bg-emerald-950 text-emerald-400 border-emerald-900';
+
+                const statusBadge = issue.resolved ? 
+                    `<span class="inline-flex items-center gap-1 text-xs font-semibold bg-emerald-950 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-900">✓ Çözüldü</span>` : 
+                    `<span class="inline-flex items-center gap-1 text-xs font-semibold bg-blue-950 text-blue-400 px-2.5 py-0.5 rounded-full border border-blue-900">⏳ İşlemde</span>`;
+
+                // Aktif rol personel ise yönetim butonlarını tamamen gizliyoruz
+                const actionButtons = currentRole === 'it_uzmani' ? `
+                    <div class="flex items-center gap-2 self-end sm:self-center">
+                        <button onclick="prepareEdit(${issue.id})" class="text-xs font-medium bg-slate-800 hover:bg-slate-700 hover:text-white text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition-all cursor-pointer">
+                            Düzenle
+                        </button>
+                        <button onclick="deleteIssue(${issue.id})" class="text-xs font-medium bg-slate-800 hover:bg-red-950 hover:text-red-400 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition-all cursor-pointer">
+                            Sil
+                        </button>
+                    </div>
+                ` : '';
+
+                container.innerHTML += `
+                    <div class="bg-slate-900 p-5 rounded-2xl shadow-md border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-slate-700">
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h3 class="text-base font-semibold text-slate-100">${issue.title}</h3>
+                                ${statusBadge}
+                                <span class="text-xs px-2 py-0.5 rounded-md border ${priorityColor} font-medium">${issue.priority}</span>
+                            </div>
+                            <p class="text-sm text-slate-400">${issue.description || 'Açıklama belirtilmemiş.'}</p>
+                            <div class="text-xs text-slate-500 font-medium flex items-center gap-1">
+                                📍 Konum/Birim: <span class="text-slate-300">${issue.location}</span> | ID: #<span class="text-slate-300">${issue.id}</span>
+                            </div>
+                        </div>
+                        ${actionButtons}
+                    </div>
+                `;
+            });
+        }
+
+        // DÜZENLEME MODUNU BAŞLATMA
+        function prepareEdit(id) {
+            const issue = currentIssuesList.find(item => item.id === id);
+            if (!issue) return;
+
+            document.getElementById("issue-id").value = issue.id;
+            document.getElementById("title").value = issue.title;
+            document.getElementById("location").value = issue.location;
+            document.getElementById("priority").value = issue.priority;
+            document.getElementById("description").value = issue.description || "";
+            document.getElementById("resolved").checked = issue.resolved;
+
+            document.getElementById("form-title").innerHTML = `<span class="w-2 h-6 bg-amber-500 rounded-sm"></span> Arıza Kaydını Düzenle (ID: #${issue.id})`;
+            document.getElementById("btn-submit").innerText = "Güncelle";
+            document.getElementById("btn-submit").className = "flex-1 bg-amber-500 hover:bg-amber-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm shadow-md cursor-pointer";
+            document.getElementById("btn-cancel").classList.remove("hidden");
+            document.getElementById("resolved-group").classList.remove("hidden");
+        }
+
+        // KAYDET VEYA GÜNCELLE (POST & PUT)
+        async function saveIssue() {
+            const id = document.getElementById("issue-id").value;
+            const title = document.getElementById("title").value;
+            const location = document.getElementById("location").value;
+            const priority = document.getElementById("priority").value;
+            const description = document.getElementById("description").value;
+            const resolved = document.getElementById("resolved").checked;
+
+            const bodyData = { title, location, priority, description, resolved };
+
+            let url = API_URL;
+            let method = 'POST';
+
+            if (id) {
+                url = `${API_URL}/${id}`;
+                method = 'PUT';
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': AUTH_HEADER
+                    },
+                    body: JSON.stringify(bodyData)
+                });
+
+                if (response.ok) {
+                    resetForm();
+                    loadAllIssues();
+                } else {
+                    const errData = await response.json();
+                    alert("Hata Oluştu: " + JSON.stringify(errData.messages));
+                }
+            } catch (error) {
+                alert("İşlem gerçekleştirilemedi.");
+                console.error(error);
+            }
+        }
+
+        // SİLME İŞLEMİ (DELETE)
+        async function deleteIssue(id) {
+            if (!confirm("Bu arıza kaydını silmek istediğinize emin misiniz?")) return;
+
+            try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': AUTH_HEADER }
+                });
+
+                if (response.ok) {
+                    loadAllIssues();
+                } else {
+                    alert("Kayıt silinemedi.");
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        // FORMU TEMİZLEME
+        function resetForm() {
+            document.getElementById("issue-id").value = "";
+            document.getElementById("issue-form").reset();
+
+            document.getElementById("form-title").innerHTML = `<span class="w-2 h-6 bg-indigo-600 rounded-sm"></span> Yeni Arıza Kaydı Oluştur`;
+            document.getElementById("btn-submit").innerText = "Kaydet";
+            document.getElementById("btn-submit").className = "flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm shadow-md cursor-pointer";
+            document.getElementById("btn-cancel").classList.add("hidden");
+            document.getElementById("resolved-group").classList.add("hidden");
+        }
+    </script>
+</body>
+</html>
